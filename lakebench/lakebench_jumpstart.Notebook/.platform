@@ -2,8 +2,8 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
   "metadata": {
     "type": "Notebook",
-    "displayName": "Notebook 1",
-    "description": "New notebook"
+    "displayName": "lakebench_jumpstart",
+    "description": "Entry-point notebook for the LakeBench TPC-DS Fabric Jumpstart: installs LakeBench, generates TPC-DS data, and runs ELT + query benchmarks."
   },
   "config": {
     "version": "2.0",

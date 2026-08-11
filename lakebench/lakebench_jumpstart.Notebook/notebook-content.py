@@ -22,29 +22,27 @@
 
 # MARKDOWN ********************
 
-# # Lakebench Jumpstart
+# # LakeBench Jumpstart
 # 
-# This jumpstart enables you to run the TPC-DS dataset and benchmarks on Fabric Spark
+# This jumpstart walks you through running the industry-standard **TPC-DS** benchmark against **Fabric Spark**, using the open-source **LakeBench** Python library.
 # 
-# Follow the instructions below to go from zero to a fully running benchmark
+# **Objective:** go from an empty Lakehouse to a fully-run TPC-DS benchmark, with ELT load timings and query performance results saved to a Delta table you can query and chart.
 # 
+# **What you need to do:** run the cells below in order, top to bottom. Each section explains what it does before you run it.
 # 
-# LakeBench is the first Python-based, multi-modal benchmarking framework designed to evaluate performance across multiple lakehouse compute engines and ELT scenarios. Supporting a variety of engines and both industry-standard and novel benchmarks, LakeBench enables comprehensive, apples-to-apples comparisons in a single, extensible Python library.
+# LakeBench is a Python-based, multi-modal benchmarking framework designed to evaluate performance across multiple lakehouse compute engines and ELT scenarios. Supporting a variety of engines and both industry-standard and novel benchmarks, LakeBench enables comprehensive, apples-to-apples comparisons in a single, extensible Python library.
 # 
-# To explore and learn more about Lakebench then go [here.](https://github.com/microsoft/LakeBench/blob/main/README.md)
+# To explore and learn more about LakeBench, see the [project README](https://github.com/microsoft/LakeBench/blob/main/README.md).
 
 # MARKDOWN ********************
 
-
-# MARKDOWN ********************
-
-# ## Installing the dependancies
+# ## 1. Install the dependencies
 # 
-# These are the peices of code that install all the dependancies and code libraries for TCP-DS
+# This installs LakeBench and the optional extras needed for TPC-DS/TPC-H data generation and benchmarking.
 
 # CELL ********************
 
-# Install all the depenancies
+# Install LakeBench and its optional extras
 !pip install lakebench[duckdb,polars,tpcds_datagen,tpch_datagen,sparkmeasure]
 
 # METADATA ********************
@@ -56,9 +54,9 @@
 
 # MARKDOWN ********************
 
-# ## Generate the data
+# ## 2. Generate the TPC-DS data
 # 
-# Change the scale_factor to change the size of the dataset
+# Change `scale_factor` to change the size of the generated dataset:
 # 
 # | Scale | Dataset Size |
 # | - | - |
@@ -67,14 +65,11 @@
 # | 100 | 100 GB |
 # | 1000 | 1 TB |
 # 
-# Warning: The larger the dataset, the more time every takes.  So if this is the first time doing this, then 1GB is a great starting point
-
-# MARKDOWN ********************
-
+# Warning: the larger the dataset, the longer everything takes. If this is your first run, `scale_factor=1` (1 GB) is a great starting point.
 
 # CELL ********************
 
-#Generate TCP-DS data
+# Generate TPC-DS data into the attached Lakehouse's Files area
 from lakebench.datagen import TPCDSDataGenerator
 
 datagen = TPCDSDataGenerator(
@@ -90,11 +85,22 @@ datagen.run()
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# ## 3. Resolve OneLake paths dynamically
+# 
+# We resolve the current workspace and Lakehouse by **ID** (via `sempy.fabric`) rather than hardcoding a workspace name. This keeps the notebook portable so it works no matter what the workspace or Lakehouse happens to be named after deployment.
+
 # CELL ********************
 
+import sempy.fabric as fabric
+
+workspace_id = fabric.get_workspace_id()
+lakehouse_id = fabric.get_lakehouse_id()
+
 target_folder = '/lakehouse/default/Files/tpcds_sf1'
-tcpds_location = "abfss://Gittest@onelake.dfs.fabric.microsoft.com/Lakebench.Lakehouse/Files/tpcds_sf1"
-results_location = "abfss://Gittest@onelake.dfs.fabric.microsoft.com/Lakebench.Lakehouse/Tables/lakebench/results"
+tcpds_location = f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{lakehouse_id}/Files/tpcds_sf1"
+results_location = f"abfss://{workspace_id}@onelake.dfs.fabric.microsoft.com/{lakehouse_id}/Tables/lakebench/results"
 
 # METADATA ********************
 
@@ -105,14 +111,13 @@ results_location = "abfss://Gittest@onelake.dfs.fabric.microsoft.com/Lakebench.L
 
 # MARKDOWN ********************
 
-# ## Turn the Parquet files into Delta Tables
-
-# MARKDOWN ********************
-
+# ## 4. Load the Parquet files into Delta tables (ELT benchmark)
+# 
+# This runs LakeBench's `ELTBench` against Fabric Spark to load the generated Parquet files into Delta tables, timing each stage of the load.
 
 # CELL ********************
 
-# Run the TPC
+# Run the TPC-DS ELT benchmark (light mode) to load Parquet into Delta tables
 from lakebench.engines import FabricSpark
 from lakebench.benchmarks import ELTBench
 
@@ -138,7 +143,7 @@ benchmark.run(mode="light")
 
 # MARKDOWN ********************
 
-# ## ETL Results
+# ## ETL results
 # How long did it take to load the data?
 
 # CELL ********************
@@ -155,7 +160,7 @@ display(df)
 
 # MARKDOWN ********************
 
-# ## Run TPCDS power_test (Load tables and run all queries)
+# ## 5. Run the TPC-DS power test (load tables and run all queries)
 
 # CELL ********************
 
@@ -182,14 +187,14 @@ benchmark.run(mode="power_test")
 
 # MARKDOWN ********************
 
-# ## Run TPCDS query test: q1 run 4 times
+# ## 6. Run a targeted query test (q1, repeated 4 times)
 
 # CELL ********************
 
 from lakebench.engines import FabricSpark
 from lakebench.benchmarks import TPCDS
 
-engine = FabricSpark(lakehouse_name="lakebench", lakehouse_schema_name="spark_tpcds_sf1", spark_measure_telemetry=False)
+engine = FabricSpark(lakehouse_name="Lakebench", lakehouse_schema_name="spark_tpcds_sf1", spark_measure_telemetry=False)
 
 benchmark = TPCDS(
     engine=engine,
@@ -207,3 +212,14 @@ benchmark.run(mode="query")
 # META   "language": "python",
 # META   "language_group": "synapse_pyspark"
 # META }
+
+# MARKDOWN ********************
+
+# ## What's next?
+# 
+# All benchmark timings from every run above are saved to the `Lakebench.lakebench.results` Delta table, so you can re-run the `SELECT * FROM Lakebench.lakebench.results` cell any time to compare runs.
+# 
+# From here you can:
+# - Increase `scale_factor` in step 2 to benchmark at a larger data size (10 GB, 100 GB, 1 TB).
+# - Point a Power BI report or semantic model at the `lakebench.results` table to visualize and compare benchmark runs over time.
+# - Add more scenarios by calling `TPCDS`/`ELTBench` with different `query_list` or `mode` values — see the [LakeBench README](https://github.com/microsoft/LakeBench/blob/main/README.md) for the full list of options.
