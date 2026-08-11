@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/variableLibrary/definition/variables/1.0.0/schema.json",
+  "variables": [
+    {
+      "name": "test",
+      "note": "",
+      "type": "ItemReference",
+      "value": {
+        "itemId": "0cd682b4-1ad4-436f-9470-ec7091f19c2e",
+        "workspaceId": "83e610e2-36d5-481d-8777-57be7ecd5c98"
+      }
+    }
+  ]
+}
