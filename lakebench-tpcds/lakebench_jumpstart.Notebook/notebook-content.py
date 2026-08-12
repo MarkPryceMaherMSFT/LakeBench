@@ -225,13 +225,13 @@ benchmark.run(mode="power_test")
 
 # MARKDOWN ********************
 
-# ## How fast was the TPD-DS power test?
+# ## Power test results: table load times
 # 
-# Filter by the scenario and sub_phase.
+# The power test above reloads the TPC-DS tables before running the queries. This shows how long each table took to load (`sub_phase = 'load'`).
 
 # CELL ********************
 
-df = spark.sql("SELECT * FROM Lakebench.lakebench.results where scenario = 'SF1 - Power Test' and sub_phase = 'load' LIMIT 1000")
+df = spark.sql("SELECT * FROM Lakebench.lakebench.results WHERE scenario = 'SF1 - Power Test' AND sub_phase = 'load' LIMIT 1000")
 display(df)
 
 # METADATA ********************
@@ -243,11 +243,13 @@ display(df)
 
 # MARKDOWN ********************
 
-# How long did each query take to run?
+# ## Power test results: individual query timings
+# 
+# How long did each individual TPC-DS query take to run? `sub_phase IS NULL` excludes the load rows above, leaving just the query executions.
 
 # CELL ********************
 
-df = spark.sql("SELECT * FROM Lakebench.lakebench.results where scenario = 'SF1 - Power Test' and sub_phase is NULL  LIMIT 1000")
+df = spark.sql("SELECT * FROM Lakebench.lakebench.results WHERE scenario = 'SF1 - Power Test' AND sub_phase IS NULL LIMIT 1000")
 display(df)
 
 # METADATA ********************
@@ -259,18 +261,18 @@ display(df)
 
 # MARKDOWN ********************
 
-# ## Query Results
+# ## Power test results: query duration summary
 # 
-# Showing the query id, the average , min and max query duration
+# A rolled-up view of the same query timings — average, minimum, and maximum duration (in milliseconds) per query.
 
 # CELL ********************
 
 # MAGIC %%sql
-# MAGIC select test_item , avg(duration_ms) avg_duration_ms, min(duration_ms) min_duration_ms, max(duration_ms) max_duration_ms  
-# MAGIC from  Lakebench.lakebench.results where scenario = 'SF1 - Power Test' and phase = 'Query'
-# MAGIC group by test_item
-# MAGIC order by test_item
-
+# MAGIC SELECT test_item, avg(duration_ms) avg_duration_ms, min(duration_ms) min_duration_ms, max(duration_ms) max_duration_ms
+# MAGIC FROM Lakebench.lakebench.results
+# MAGIC WHERE scenario = 'SF1 - Power Test' AND phase = 'Query'
+# MAGIC GROUP BY test_item
+# MAGIC ORDER BY test_item
 
 # METADATA ********************
 
@@ -307,9 +309,15 @@ benchmark.run(mode="query")
 # META   "language_group": "synapse_pyspark"
 # META }
 
+# MARKDOWN ********************
+
+# ## Targeted query test results
+# 
+# `q1` was run 4 times in a row — comparing the durations below is a quick way to spot caching effects or run-to-run variance for a single query.
+
 # CELL ********************
 
-df = spark.sql("SELECT * FROM Lakebench.lakebench.results where scenario = 'SF1 - Q4*4' LIMIT 1000")
+df = spark.sql("SELECT * FROM Lakebench.lakebench.results WHERE scenario = 'SF1 - Q4*4' LIMIT 1000")
 display(df)
 
 # METADATA ********************
