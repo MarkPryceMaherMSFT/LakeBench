@@ -37,6 +37,43 @@
 
 # MARKDOWN ********************
 
+# ## 0. Verify your Fabric Spark runtime
+# 
+# This jumpstart is validated against **Fabric Runtime 2.0 (Apache Spark 4.x)**. Running on an older runtime (e.g. Runtime 1.3 / Spark 3.5) can cause confusing errors later in this notebook.
+# 
+# The cell below checks the Spark version of your **current session** and warns you if it's below 4.x. If you get a warning:
+# 1. Go to **Workspace settings → Data Engineering/Science → Spark settings → Environment** tab, set **Runtime version** to **2.0 Public Preview (Spark 4.1, Delta 4.2)**, and save.
+# 2. Restart this notebook's session (close and reopen, or use **Stop session** then run cells again) so it picks up the new default.
+# 
+# Note: changing the workspace or environment runtime setting only affects *new* Spark sessions — it can't upgrade a session that's already running, which is why this is a check-and-warn rather than an automatic fix.
+
+# CELL ********************
+
+# Check the active Spark session's runtime version and warn if it's older than Fabric Runtime 2.0 (Spark 4.x)
+current_spark_version = spark.version
+current_major_version = int(current_spark_version.split(".")[0])
+required_major_version = 4  # Fabric Runtime 2.0 ships Apache Spark 4.x
+
+if current_major_version < required_major_version:
+    print(
+        f"WARNING: This session is running Apache Spark {current_spark_version}, which is an older Fabric runtime "
+        f"(Runtime 2.0 ships Spark 4.x).\n"
+        f"Later cells in this notebook are validated against Fabric Runtime 2.0 and may behave unexpectedly on this version.\n\n"
+        f"To fix: Workspace settings > Data Engineering/Science > Spark settings > Environment tab > Runtime version > "
+        f"select '2.0 Public Preview (Spark 4.1, Delta 4.2)', save, then restart this notebook's session."
+    )
+else:
+    print(f"Running Apache Spark {current_spark_version} (Fabric Runtime 2.0 or later) - looks good.")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
 # ## 1. Install the dependencies
 # 
 # This installs LakeBench and the optional extras needed for TPC-DS/TPC-H data generation and benchmarking.
