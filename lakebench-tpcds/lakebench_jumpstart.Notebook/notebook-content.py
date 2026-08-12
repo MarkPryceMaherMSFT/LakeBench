@@ -9,7 +9,7 @@
 # META   "dependencies": {
 # META     "lakehouse": {
 # META       "default_lakehouse": "91f19c2e-ec70-9470-436f-1ad40cd682b4",
-# META       "default_lakehouse_name": "lakebench",
+# META       "default_lakehouse_name": "Lakebench",
 # META       "default_lakehouse_workspace_id": "00000000-0000-0000-0000-000000000000",
 # META       "known_lakehouses": [
 # META         {
@@ -225,6 +225,62 @@ benchmark.run(mode="power_test")
 
 # MARKDOWN ********************
 
+# ## How fast was the TPD-DS power test?
+# 
+# Filter by the scenario and sub_phase.
+
+# CELL ********************
+
+df = spark.sql("SELECT * FROM Lakebench.lakebench.results where scenario = 'SF1 - Power Test' and sub_phase = 'load' LIMIT 1000")
+display(df)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# How long did each query take to run?
+
+# CELL ********************
+
+df = spark.sql("SELECT * FROM Lakebench.lakebench.results where scenario = 'SF1 - Power Test' and sub_phase is NULL  LIMIT 1000")
+display(df)
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
+# ## Query Results
+# 
+# Showing the query id, the average , min and max query duration
+
+# CELL ********************
+
+# MAGIC %%sql
+# MAGIC select test_item , avg(duration_ms) avg_duration_ms, min(duration_ms) min_duration_ms, max(duration_ms) max_duration_ms  
+# MAGIC from  Lakebench.lakebench.results where scenario = 'SF1 - Power Test' and phase = 'Query'
+# MAGIC group by test_item
+# MAGIC order by test_item
+
+
+# METADATA ********************
+
+# META {
+# META   "language": "sparksql",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# MARKDOWN ********************
+
 # ## 6. Run a targeted query test (q1, repeated 4 times)
 
 # CELL ********************
@@ -243,6 +299,18 @@ benchmark = TPCDS(
     query_list=["q1"] * 4,
 )
 benchmark.run(mode="query")
+
+# METADATA ********************
+
+# META {
+# META   "language": "python",
+# META   "language_group": "synapse_pyspark"
+# META }
+
+# CELL ********************
+
+df = spark.sql("SELECT * FROM Lakebench.lakebench.results where scenario = 'SF1 - Q4*4' LIMIT 1000")
+display(df)
 
 # METADATA ********************
 
